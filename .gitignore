@@ -1,1 +1,1 @@
-# No changes needed - only README.md was modified, which is a source file
+Nothing should be ignored based on the provided file changes. The only modified file is `v2.3.html`, which is a source/config file and should not be added to .gitignore.
