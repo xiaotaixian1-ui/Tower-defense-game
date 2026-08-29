@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>千恋＊万花 - 穗织防卫线</title>
+    <style>
+        :root {
+            --primary: #ffb7c5;
+            --secondary: #ff69b4;
+            --accent: #8b4513;
+            --bg: #fff0f5;
+            --text: #5d4037;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Yu Mincho', 'SimSun', serif;
+            background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-container {
+            position: relative;
+            width: 1024px;
+            height: 768px;
+            background: #fff0f5;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .ui-panel {
+            position: absolute;
+            background: rgba(255, 240, 245, 0.95);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(139, 69, 19, 0.3);
+        }
+
+        #top-bar {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .resource-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .coin-icon { background: #ffd700; color: #8b4513; }
+        .spirit-icon { background: #9370db; color: white; }
+        .heart-icon { background: #ff69b4; color: white; }
+
+        #build-panel {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 140px;
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            z-index: 100;
+        }
+
+        .tower-card {
+            width: 90px;
+            height: 120px;
+            background: linear-gradient(180deg, #fff 0%, #fff0f5 100%);
+            border: 2px solid #ffb7c5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            position: relative;
+        }
+
+        .tower-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(255, 105, 180, 0.4);
+            border-color: var(--secondary);
+        }
+
+        .tower-card.selected {
+            border-color: #ff4500;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .tower-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #fff;
+        }
+
+        .tower-name {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .tower-cost {
+            font-size: 11px;
+            color: #8b4513;
+        }
+
+        #side-panel {
+            top: 80px;
+            right: 10px;
+            width: 200px;
+            bottom: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .character-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .char-portrait {
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--accent);
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .affinity-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .affinity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffb7c5, #ff69b4);
+            transition: width 0.3s;
+        }
+
+        #skill-bar {
+            bottom: 160px;
+            right: 10px;
+            height: 50px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .skill-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            background: linear-gradient(180deg, #fff 0%, #fff0f5 100%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .skill-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+        }
+
+        .skill-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 220px;
+            height: 120px;
+            background: rgba(255, 240, 245, 0.98);
+            border: 3px double var(--accent);
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 4px 6px rgba(139, 69, 19, 0.3);
+        }
+
+        .dialogue-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+
+        .dialogue-text {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 240, 245, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        .overlay h1 {
+            font-size: 48px;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .overlay p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        .btn {
+            padding: 12px 40px;
+            font-size: 18px;
+            background: linear-gradient(180deg, #ffb7c5 0%, #ff69b4 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(255, 105, 180, 0.6);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .damage-number {
+            position: absolute;
+            font-weight: bold;
+            font-size: 16px;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-30px) scale(1.2); }
+        }
+
+        .sakura {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffb7c5;
+            border-radius: 50% 0 50% 0;
+            pointer-events: none;
+            animation: sakuraFall linear forwards;
+        }
+
+        @keyframes sakuraFall {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(768px) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game"></canvas>
+        
+        <!-- 顶部资源栏 -->
+        <div id="top-bar" class="ui-panel">
+            <div class="resource-item">
+                <span class="resource-icon coin-icon">💰</span>
+                <span id="gold-display">300</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon spirit-icon">✨</span>
+                <span id="spirit-display">100</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon heart-icon">❤️</span>
+                <span id="life-display">20</span>
+            </div>
+            <div class="resource-item">
+                <span>🌊 波次:</span>
+                <span id="wave-display">1/10</span>
+            </div>
+        </div>
+
+        <!-- 侧边角色信息 -->
+        <div id="side-panel" class="ui-panel">
+            <div class="character-info">
+                <div class="char-portrait" id="char-portrait">🌸</div>
+                <div style="font-weight:bold;margin-bottom:5px;" id="char-name">朝武芳乃</div>
+                <div class="stat-row">
+                    <span>攻击力:</span>
+                    <span id="char-atk">15</span>
+                </div>
+                <div class="stat-row">
+                    <span>攻击速度:</span>
+                    <span id="char-spd">1.0</span>
+                </div>
+                <div class="stat-row">
+                    <span>好感度:</span>
+                </div>
+                <div class="affinity-bar">
+                    <div class="affinity-fill" id="affinity-fill" style="width: 30%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 技能栏 -->
+        <div id="skill-bar" class="ui-panel">
+            <button class="skill-btn" id="skill-1" title="神乐铃">🔔</button>
+            <button class="skill-btn" id="skill-2" title="樱花结界">🌸</button>
+            <button class="skill-btn" id="skill-3" title="灵力爆发" disabled>✨</button>
+        </div>
+
+        <!-- 建造面板 -->
+        <div id="build-panel" class="ui-panel">
+            <!-- 由 JS 动态生成 -->
+        </div>
+
+        <!-- 对话框 -->
+        <div id="dialogue-box">
+            <div class="dialogue-name" id="dialogue-name">朝武芳乃</div>
+            <div class="dialogue-text" id="dialogue-text">这里是穗织镇，请一定要保护好大家！</div>
+        </div>
+
+        <!-- 开始界面 -->
+        <div id="start-screen" class="overlay">
+            <h1>🌸 千恋＊万花 🌸</h1>
+            <p>穗织防卫线</p>
+            <p style="font-size:14px;color:#8b4513;margin-top:10px;">
+                融合 Galgame 与塔防策略<br>
+                与少女们建立羁绊，共同守护穗织镇
+            </p>
+            <button class="btn" onclick="startGame()">开始游戏</button>
+        </div>
+
+        <!-- 游戏结束界面 -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 id="game-over-title">游戏结束</h1>
+            <p id="game-over-reason">敌人突破了防线</p>
+            <p>坚持波次：<span id="final-wave">0</span></p>
+            <button class="btn" onclick="restartGame()">重新开始</button>
+        </p>
+    </div>
+
+    <script>
+        // ==================== 游戏数据 ====================
+        const TOWERS = [
+            { id: '芳乃', name: '芳乃', avatar: '🌸', cost: 100, damage: 15, range: 120, rate: 1.0, color: '#ffb7c5', desc: '远程灵力攻击' },
+            { id: '丛雨', name: '丛雨', avatar: '⚔️', cost: 150, damage: 25, range: 60, rate: 1.5, color: '#87ceeb', desc: '近战物理输出' },
+            { id: '蕾娜', name: '蕾娜', avatar: '🔧', cost: 200, damage: 30, range: 100, rate: 0.8, color: '#da70d6', desc: '机械炮台' },
+            { id: '茉子', name: '茉子', avatar: '🍵', cost: 120, damage: 12, range: 110, rate: 1.2, color: '#90ee90', desc: '治疗辅助塔' },
+            { id: '将臣', name: '将臣', avatar: '🗡️', cost: 250, damage: 40, range: 80, rate: 0.6, color: '#ffa500', desc: '高伤单体' }
+        ];
+
+        const ENEMIES = [
+            { name: '小鬼', hp: 30, speed: 1.5, reward: 8, color: '#8b4513' },
+            { name: '妖怪', hp: 50, speed: 1.2, reward: 12, color: '#4b0082' },
+            { name: '式神', hp: 80, speed: 1.0, reward: 18, color: '#2f4f4f' },
+            { name: '鬼族', hp: 120, speed: 0.8, reward: 25, color: '#8b0000' },
+            { name: '大妖怪', hp: 200, speed: 0.6, reward: 40, color: '#483d8b' }
+        ];
+
+        const SKILLS = [
+            { id: 1, name: '神乐铃', cd: 10, effect: 'stun' },
+            { id: 2, name: '樱花结界', cd: 15, effect: 'slow' },
+            { id: 3, name: '灵力爆发', cd: 30, effect: 'damage' }
+        ];
+
+        const DIALOGUES = {
+            start: [
+                { name: '芳乃', text: '欢迎来到穗织镇！我是朝武芳乃。' },
+                { name: '芳乃', text: '最近百鬼夜行，请大家协助我守护这里！' }
+            ],
+            wave5: [
+                { name: '丛雨', text: '敌人变多了呢...不过有大家在，没问题的！' }
+            ],
+            wave10: [
+                { name: '芳乃', text: '最终波次来了！大家一起加油！' }
+            ]
+        };
+
+        // ==================== 游戏状态 ====================
+        let gameState = {
+            gold: 300,
+            spirit: 100,
+            life: 20,
+            wave: 0,
+            running: false,
+            paused: false,
+            selectedTower: null,
+            towers: [],
+            enemies: [],
+            projectiles: [],
+            particles: [],
+            skillCooldowns: [0, 0, 0]
+        };
+
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const CELL = 50;
+        const COLS = 16;
+        const ROWS = 10;
+
+        canvas.width = COLS * CELL;
+        canvas.height = ROWS * CELL;
+
+        // 路径点
+        const PATH = [
+            {x: 0, y: 2}, {x: 3, y: 2}, {x: 3, y: 7}, 
+            {x: 10, y: 7}, {x: 10, y: 3}, {x: 15, y: 3}
+        ];
+
+        // ==================== UI 更新 ====================
+        function updateUI() {
+            document.getElementById('gold-display').textContent = gameState.gold;
+            document.getElementById('spirit-display').textContent = gameState.spirit;
+            document.getElementById('life-display').textContent = gameState.life;
+            document.getElementById('wave-display').textContent = `${gameState.wave}/10`;
+            
+            // 更新建造按钮状态
+            document.querySelectorAll('.tower-card').forEach(card => {
+                const cost = parseInt(card.dataset.cost);
+                card.classList.toggle('disabled', gameState.gold < cost);
+            });
+        }
+
+        function showDialogue(name, text) {
+            const box = document.getElementById('dialogue-box');
+            document.getElementById('dialogue-name').textContent = name;
+            document.getElementById('dialogue-text').textContent = text;
+            box.style.display = 'block';
+            
+            setTimeout(() => {
+                box.style.display = 'none';
+            }, 4000);
+        }
+
+        // ==================== 建造系统 ====================
+        function createBuildPanel() {
+            const panel = document.getElementById('build-panel');
+            panel.innerHTML = '';
+            
+            TOWERS.forEach(tower => {
+                const card = document.createElement('div');
+                card.className = 'tower-card';
+                card.dataset.id = tower.id;
+                card.dataset.cost = tower.cost;
+                card.innerHTML = `
+                    <div class="tower-avatar">${tower.avatar}</div>
+                    <div class="tower-name">${tower.name}</div>
+                    <div class="tower-cost">💰 ${tower.cost}</div>
+                `;
+                card.onclick = () => selectTower(tower);
+                panel.appendChild(card);
+            });
+        }
+
+        function selectTower(tower) {
+            if (gameState.gold < tower.cost) return;
+            
+            gameState.selectedTower = tower;
+            document.querySelectorAll('.tower-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.id === tower.id);
+            });
+            
+            showDialogue('系统', `选择了 ${tower.name} - ${tower.desc}`);
+        }
+
+        // ==================== 游戏逻辑 ====================
+        function spawnEnemy() {
+            const waveConfig = ENEMIES[Math.min(Math.floor(gameState.wave / 2), ENEMIES.length - 1)];
+            const enemy = {
+                ...waveConfig,
+                x: PATH[0].x * CELL,
+                y: PATH[0].y * CELL + CELL / 2,
+                pathIndex: 0,
+                maxHp: waveConfig.hp,
+                frozen: 0
+            };
+            gameState.enemies.push(enemy);
+        }
+
+        function updateEnemies() {
+            gameState.enemies.forEach((enemy, index) => {
+                if (enemy.pathIndex >= PATH.length - 1) {
+                    gameState.enemies.splice(index, 1);
+                    gameState.life--;
+                    updateUI();
+                    if (gameState.life <= 0) gameOver();
+                    return;
+                }
+
+                const target = PATH[enemy.pathIndex + 1];
+                const tx = target.x * CELL + CELL / 2;
+                const ty = target.y * CELL + CELL / 2;
+                
+                const dx = tx - enemy.x;
+                const dy = ty - enemy.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist < 5) {
+                    enemy.pathIndex++;
+                } else {
+                    enemy.x += (dx / dist) * enemy.speed;
+                    enemy.y += (dy / dist) * enemy.speed;
+                }
+            });
+        }
+
+        function updateTowers() {
+            gameState.towers.forEach(tower => {
+                const now = Date.now();
+                if (now - tower.lastShot < tower.rate * 1000) return;
+                
+                // 寻找目标
+                let target = null;
+                let minDist = Infinity;
+                
+                gameState.enemies.forEach(enemy => {
+                    const dist = Math.hypot(enemy.x - tower.x, enemy.y - tower.y);
+                    if (dist <= tower.range && dist < minDist) {
+                        minDist = dist;
+                        target = enemy;
+                    }
+                });
+                
+                if (target) {
+                    // 发射投射物
+                    gameState.projectiles.push({
+                        x: tower.x,
+                        y: tower.y,
+                        target: target,
+                        damage: tower.damage,
+                        color: tower.color,
+                        speed: 8
+                    });
+                    tower.lastShot = now;
+                }
+            });
+        }
+
+        function updateProjectiles() {
+            gameState.projectiles.forEach((proj, index) => {
+                if (!proj.target || proj.target.maxHp <= 0) {
+                    gameState.projectiles.splice(index, 1);
+                    return;
+                }
+                
+                const dx = proj.target.x - proj.x;
+                const dy = proj.target.y - proj.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist < 10) {
+                    // 命中
+                    proj.target.hp -= proj.damage;
+                    createDamageNumber(proj.target.x, proj.target.y, proj.damage);
+                    
+                    if (proj.target.hp <= 0) {
+                        gameState.gold += proj.target.reward;
+                        updateUI();
+                    }
+                    
+                    gameState.projectiles.splice(index, 1);
+                } else {
+                    proj.x += (dx / dist) * proj.speed;
+                    proj.y += (dy / dist) * proj.speed;
+                }
+            });
+        }
+
+        function createDamageNumber(x, y, damage) {
+            const el = document.createElement('div');
+            el.className = 'damage-number';
+            el.textContent = damage;
+            el.style.left = (canvas.offsetLeft + x) + 'px';
+            el.style.top = (canvas.offsetTop + y) + 'px';
+            el.style.color = '#ff69b4';
+            document.body.appendChild(el);
+            
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // ==================== 渲染 ====================
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#fff0f5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制路径
+            ctx.strokeStyle = '#deb887';
+            ctx.lineWidth = 30;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(PATH[0].x * CELL + CELL/2, PATH[0].y * CELL + CELL/2);
+            for (let i = 1; i < PATH.length; i++) {
+                ctx.lineTo(PATH[i].x * CELL + CELL/2, PATH[i].y * CELL + CELL/2);
+            }
+            ctx.stroke();
+            
+            // 绘制路径线
+            ctx.strokeStyle = '#d2a679';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制塔楼
+            gameState.towers.forEach(tower => {
+                ctx.fillStyle = tower.color;
+                ctx.beginPath();
+                ctx.arc(tower.x, tower.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制范围圈（如果选中）
+                if (gameState.selectedTower && 
+                    Math.abs(tower.x - gameState.mouseX) < 30 && 
+                    Math.abs(tower.y - gameState.mouseY) < 30) {
+                    ctx.strokeStyle = 'rgba(255, 105, 180, 0.5)';
+                    ctx.fillStyle = 'rgba(255, 105, 180, 0.1)';
+                    ctx.beginPath();
+                    ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            });
+            
+            // 绘制敌人
+            gameState.enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 血条
+                const hpPercent = enemy.hp / enemy.maxHp;
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(enemy.x - 15, enemy.y - 25, 30, 4);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(enemy.x - 15, enemy.y - 25, 30 * hpPercent, 4);
+            });
+            
+            // 绘制投射物
+            gameState.projectiles.forEach(proj => {
+                ctx.fillStyle = proj.color;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // 绘制放置预览
+            if (gameState.selectedTower && gameState.mouseX && gameState.mouseY) {
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = gameState.selectedTower.color;
+                ctx.beginPath();
+                ctx.arc(gameState.mouseX, gameState.mouseY, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(255, 105, 180, 0.5)';
+                ctx.fillStyle = 'rgba(255, 105, 180, 0.1)';
+                ctx.beginPath();
+                ctx.arc(gameState.mouseX, gameState.mouseY, gameState.selectedTower.range, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // ==================== 输入处理 ====================
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            gameState.mouseX = e.clientX - rect.left;
+            gameState.mouseY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!gameState.selectedTower) return;
+            
+            const tower = gameState.selectedTower;
+            if (gameState.gold < tower.cost) return;
+            
+            // 检查是否在路径上
+            const gridX = Math.floor(gameState.mouseX / CELL);
+            const gridY = Math.floor(gameState.mouseY / CELL);
+            
+            // 简单检查：不在路径点上
+            let onPath = false;
+            for (let i = 0; i < PATH.length - 1; i++) {
+                const p1 = PATH[i];
+                const p2 = PATH[i + 1];
+                if (gridX >= Math.min(p1.x, p2.x) && gridX <= Math.max(p1.x, p2.x) &&
+                    gridY >= Math.min(p1.y, p2.y) && gridY <= Math.max(p1.y, p2.y)) {
+                    onPath = true;
+                    break;
+                }
+            }
+            
+            if (onPath) {
+                showDialogue('系统', '不能建在道路上！');
+                return;
+            }
+            
+            // 放置塔楼
+            gameState.gold -= tower.cost;
+            gameState.towers.push({
+                ...tower,
+                x: gameState.mouseX,
+                y: gameState.mouseY,
+                lastShot: 0
+            });
+            
+            gameState.selectedTower = null;
+            document.querySelectorAll('.tower-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            updateUI();
+            showDialogue(tower.name, `已部署！一起守护穗织镇吧！`);
+        });
+
+        // ==================== 技能系统 ====================
+        function useSkill(skillId) {
+            if (gameState.skillCooldowns[skillId - 1] > 0) return;
+            
+            const skill = SKILLS.find(s => s.id === skillId);
+            if (!skill) return;
+            
+            // 应用技能效果
+            if (skill.effect === 'stun') {
+                gameState.enemies.forEach(e => e.frozen = 60);
+                showDialogue('芳乃', '神乐铃 - 敌人暂时无法行动！');
+            } else if (skill.effect === 'slow') {
+                gameState.enemies.forEach(e => e.speed *= 0.5);
+                showDialogue('芳乃', '樱花结界 - 敌人速度降低了！');
+            } else if (skill.effect === 'damage') {
+                gameState.enemies.forEach(e => e.hp -= 50);
+                showDialogue('芳乃', '灵力爆发！');
+            }
+            
+            // 设置冷却
+            gameState.skillCooldowns[skillId - 1] = skill.cd;
+            document.getElementById(`skill-${skillId}`).disabled = true;
+        }
+
+        document.getElementById('skill-1').onclick = () => useSkill(1);
+        document.getElementById('skill-2').onclick = () => useSkill(2);
+        document.getElementById('skill-3').onclick = () => useSkill(3);
+
+        // ==================== 游戏循环 ====================
+        let waveTimer = 0;
+        let enemySpawnTimer = 0;
+
+        function gameLoop() {
+            if (!gameState.running || gameState.paused) return;
+            
+            // 波次管理
+            waveTimer++;
+            if (waveTimer > 1800) { // 30 秒一波
+                gameState.wave++;
+                waveTimer = 0;
+                updateUI();
+                
+                if (gameState.wave > 10) {
+                    victory();
+                    return;
+                }
+                
+                // 触发对话
+                if (DIALOGUES[`wave${gameState.wave}`]) {
+                    DIALOGUES[`wave${gameState.wave}`].forEach(d => {
+                        setTimeout(() => showDialogue(d.name, d.text), 500);
+                    });
+                }
+            }
+            
+            // 敌人生成
+            enemySpawnTimer++;
+            if (enemySpawnTimer > 60 && gameState.enemies.length < 5 + gameState.wave * 2) {
+                spawnEnemy();
+                enemySpawnTimer = 0;
+            }
+            
+            updateEnemies();
+            updateTowers();
+            updateProjectiles();
+            
+            // 技能冷却
+            gameState.skillCooldowns = gameState.skillCooldowns.map(cd => Math.max(0, cd - 1/60));
+            SKILLS.forEach((skill, i) => {
+                const btn = document.getElementById(`skill-${i+1}`);
+                if (btn) {
+                    btn.disabled = gameState.skillCooldowns[i] > 0;
+                }
+            });
+            
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ==================== 游戏控制 ====================
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            gameState.running = true;
+            gameState.gold = 300;
+            gameState.life = 20;
+            gameState.wave = 0;
+            gameState.towers = [];
+            gameState.enemies = [];
+            gameState.projectiles = [];
+            gameState.skillCooldowns = [0, 0, 0];
+            
+            updateUI();
+            createBuildPanel();
+            
+            // 开场对话
+            setTimeout(() => {
+                DIALOGUES.start.forEach(d => {
+                    setTimeout(() => showDialogue(d.name, d.text), 500);
+                });
+            }, 1000);
+            
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState.running = false;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('game-over-title').textContent = '游戏结束';
+            document.getElementById('game-over-reason').textContent = '敌人突破了防线';
+            document.getElementById('final-wave').textContent = gameState.wave;
+        }
+
+        function victory() {
+            gameState.running = false;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('game-over-title').textContent = '🎉 胜利！🎉';
+            document.getElementById('game-over-reason').textContent = '成功守护了穗织镇！';
+            document.getElementById('final-wave').textContent = '10/10';
+        }
+
+        function restartGame() {
+            document.getElementById('game-over-screen').classList.add('hidden');
+            startGame();
+        }
+
+        // 樱花特效
+        function createSakura() {
+            const sakura = document.createElement('div');
+            sakura.className = 'sakura';
+            sakura.style.left = Math.random() * 1024 + 'px';
+            sakura.style.animationDuration = (3 + Math.random() * 2) + 's';
+            document.getElementById('game-container').appendChild(sakura);
+            
+            setTimeout(() => sakura.remove(), 5000);
+        }
+
+        setInterval(createSakura, 300);
+
+        // 初始化
+        createBuildPanel();
+        updateUI();
+    </script>
+</body>
+</html>

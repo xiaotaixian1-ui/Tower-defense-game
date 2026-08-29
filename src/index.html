@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a1a15">
+<title>萤火峡谷 · 塔防</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<canvas id="bgfx"></canvas>
+<div id="app">
+  <header>
+    <div class="brand"><h1>萤火峡谷</h1><span class="tag">FIREFLY CANYON · 守护祭坛的最后一夜</span></div>
+    <div class="stats">
+      <div class="stat" id="stGold"><svg class="ico" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="#ffc94d" stroke="#8a6215" stroke-width="1.5"/><circle cx="9" cy="9" r="4" fill="none" stroke="#b8860b" stroke-width="1.4"/></svg><div><b id="vGold">230</b><span class="lbl">金币</span></div></div>
+      <div class="stat" id="stLife"><svg class="ico" viewBox="0 0 18 18"><path d="M9 15.5C4 11.5 1.5 8.6 1.5 5.8 1.5 3.6 3.2 2 5.3 2c1.5 0 2.9.8 3.7 2.1C9.8 2.8 11.2 2 12.7 2c2.1 0 3.8 1.6 3.8 3.8 0 2.8-2.5 5.7-7.5 9.7z" fill="#ff6d5a" stroke="#8a2a1d"/></svg><div><b id="vLife">20</b><span class="lbl">生命</span></div></div>
+      <div class="stat" id="stWave"><svg class="ico" viewBox="0 0 18 18"><path d="M4 2v14" stroke="#8fb3a3" stroke-width="1.6" stroke-linecap="round"/><path d="M4 3h9l-2.5 3L13 9H4z" fill="#4fe3b2"/></svg><div><b id="vWave">0/12</b><span class="lbl">波次</span></div></div>
+    </div>
+    <div class="ctrls">
+      <button class="cbtn" id="spdBtn" title="游戏速度">x1</button>
+      <button class="cbtn" id="pauseBtn" title="暂停 (P)">❚❚</button>
+      <button class="cbtn" id="sndBtn" title="音效开关">♫</button>
+      <button class="cbtn" id="saveBtn" title="手动存档">💾</button>
+      <button class="cbtn" id="helpBtn" title="快捷键 (H)">?</button>
+      <button class="cbtn" id="rstBtn" title="重新开始">⟳</button>
+    </div>
+  </header>
+  <main>
+    <div id="stageWrap">
+      <div id="stage">
+        <canvas id="game" width="800" height="500"></canvas>
+        <div id="banner"></div>
+        <div id="pauseTag">已暂停</div>
+        <div id="weatherTag"></div>
+        <div id="toast"></div>
+        <div id="skillbar">
+          <div class="skill" id="sk-q"><b>Q</b><span>冰霜新星</span><em></em><i class="cd"></i></div>
+          <div class="skill" id="sk-e"><b>E</b><span>陨石打击</span><em></em><i class="cd"></i></div>
+          <div class="skill" id="sk-r"><b>R</b><span>金币狂热</span><em></em><i class="cd"></i></div>
+          <div class="skill" id="sk-f"><b>F</b><span>祭坛祈福</span><em></em><i class="cd"></i></div>
+        </div>
+        <div id="achToast"><span class="abadge">成</span><div><b id="achToastName"></b><span id="achToastDesc"></span></div></div>
+        <div class="metaov" id="helpOv"><div class="meta-in"><div class="meta-head"><h3>快捷键</h3><button class="meta-close" id="helpClose">✕</button></div><p class="meta-sub">键盘与触屏均可操作 · 协作模式下副官技能同样适用</p><div id="helpBody"></div></div></div>
+        <div class="metaov" id="logOv"><div class="meta-in"><div class="meta-head"><h3>更新日志</h3><button class="meta-close" id="logClose">✕</button></div><p class="meta-sub" id="logSub">萤火峡谷 · 迭代年鉴</p><div id="logBody"></div></div></div>
+        <div class="metaov" id="skinsOv"><div class="meta-in"><div class="meta-head"><h3>皮肤图鉴</h3><button class="meta-close" id="skinsClose">✕</button></div><p class="meta-sub">完成成就或提升赛季等级解锁皮肤 · 点击已解锁的皮肤即可装备</p><div id="skinsBody"></div></div></div>
+        <div class="metaov" id="achOv"><div class="meta-in"><div class="meta-head"><h3>成就</h3><button class="meta-close" id="achClose">✕</button></div><p class="meta-sub">成就进度永久保存 · 部分成就奖励专属塔皮肤</p><div id="achBody"></div></div></div>
+        <div class="metaov" id="lbOv"><div class="meta-in"><div class="meta-head"><h3>排行榜</h3><button class="meta-close" id="lbClose">✕</button></div><p class="meta-sub">本地荣誉榜 · 记录你在峡谷留下的每一次战绩</p><div class="lbtabs"><button class="lbtab sel" data-b="endless">无尽深渊</button><button class="lbtab" data-b="daily">每日挑战</button><button class="lbtab" data-b="level">关卡竞速</button></div><div id="lbBody"></div></div></div>
+        <div class="metaov" id="seasonOv"><div class="meta-in"><div class="meta-head"><h3 id="seasonTitle">赛季</h3><button class="meta-close" id="seasonClose">✕</button></div><p class="meta-sub" id="seasonSub"></p><div class="slvbox"><div class="slv"><span>赛季等级</span><b id="sLvl">Lv.0</b></div><div class="sxptrack"><i id="sXpBar"></i></div><div class="sxpnum" id="sXpTxt"></div></div><div class="strack" id="sTrack"></div><div class="sbest" id="sBest"></div><div id="sArch"></div></div></div>
+        <div id="overlay"><div class="ov-box" id="ovBox"></div></div>
+        <div id="menu" class="show"><div class="menu-box">
+          <div class="m-title">萤火峡谷</div>
+          <div class="m-sub">FIREFLY CANYON DEFENSE · 守护祭坛的最后一夜</div>
+          <button class="btn gold" id="contBtn"></button>
+          <button class="seasonbar" id="seasonBtn"><span class="sb-l"><em id="sbName">赛季</em><b id="sbLvl">Lv.0</b></span><span class="sb-track"><i id="sbBar"></i></span><span class="sb-r" id="sbDays">赛季详情 →</span></button>
+          <div class="diffrow"><button class="diff" data-d="easy"><b>微风</b><i>EASY</i></button><button class="diff" data-d="normal"><b>夜幕</b><i>NORMAL</i></button><button class="diff" data-d="hard"><b>深渊</b><i>HARD</i></button></div>
+          <div class="diffinfo" id="diffInfo"></div>
+          <button class="cooprow" id="coopBtn"><span class="cp-l"><b>协作副官</b><span id="coopState">未启用</span></span><span class="cp-d">同屏双人：指挥官建塔/布墙，副官用 Q·E·R·F 释放技能 · 敌军血量 +60%,奖励 +25%</span><span class="cp-sw"></span></button>
+          <button class="dailycard wk" id="modeWeekly"><span class="dc-left"><span class="dc-badge">周</span><span><h4 id="wkName">周常 Boss</h4><span class="dc-date" id="wkDate"></span></span></span><span class="dc-muts" id="wkMuts"></span><span class="dc-rec" id="wkRec"></span><span class="dc-go">攻克 →</span></button>
+          <button class="dailycard" id="modeDaily"><span class="dc-left"><span class="dc-badge">日</span><span><h4>每日挑战</h4><span class="dc-date" id="dcDate"></span></span></span><span class="dc-muts" id="dcMuts"></span><span class="dc-rec" id="dcRec"></span><span class="dc-go">进入 →</span></button>
+          <div class="modes">
+            <button class="mode mode-level" id="modeLevel"><h4><span class="mbadge">征</span>关卡征程</h4><p>十二波敌军，巨像与熔岩泰坦压阵。布墙设伏，元素联动，守住祭坛。</p><div class="rec" id="recLevel"></div></button>
+            <button class="mode mode-endless" id="modeEndless"><h4><span class="mbadge">渊</span>无尽深渊</h4><p>波次无穷，词缀多变，天气愈险。你的极限在哪里？</p><div class="rec" id="recEndless"></div></button>
+          </div>
+          <div class="metarow">
+            <button class="metabtn" id="skinsBtn">皮肤图鉴<b id="skinCnt">0/14</b></button>
+            <button class="metabtn" id="achBtn">成就<b id="achCnt">0/19</b></button>
+            <button class="metabtn" id="lbBtn">排行榜</button>
+            <button class="metabtn" id="logBtn">更新日志<b id="logCnt"></b><span class="nd"></span></button>
+          </div>
+          <div class="m-hint">左键建造/布墙 · 右键取消 · 1-9 选塔 · 0 荆棘桩 · 空格 召唤 · P 暂停 · H 快捷键 · 触屏点按</div>
+        </div></div>
+      </div>
+    </div>
+    <aside>
+      <section class="panel" id="bp"><h2>防御工坊<button class="minibtn" id="skinsBtn2">皮肤</button></h2><div id="cards"></div><p class="hint">选中点草地放置；荆棘桩可改道敌军 (战斗间隙)。点击塔可升级/出售。</p></section>
+      <div class="deckrow">
+        <section class="panel" id="ip"><h2>情报台</h2><div id="infoBody"></div></section>
+        <section class="panel" id="wp"><h2>作战指令<span id="modeTag">关卡征程</span><span id="diffTag">夜幕</span><span id="coopTag">协作</span></h2>
+          <button id="waveBtn"></button><div id="waveBar"><i></i></div>
+          <div id="waveNote">击退敌军获得金币，波次清空有额外奖励</div>
+          <button class="savbtn" id="saveBtn2">💾 手动存档</button>
+        </section>
+      </div>
+    </aside>
+  </main>
+  <div id="hintbar">左键 建造/布墙 · 右键 取消 · <b>1-9</b> 选塔 · <b>0</b> 荆棘桩 · <b>空格</b> 召唤 · <b>P</b> 暂停 · <b>H</b> 快捷键 · 协作副官 <b>Q E R F</b></div>
+</div>
+<script src="js/game.js"></script>
+</body>
+</html>
